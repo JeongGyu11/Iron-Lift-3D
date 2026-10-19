@@ -22,7 +22,7 @@ Node 22.12 이상이 필요합니다 (vite 8).
 
 ## 배포 (Render)
 `render.yaml`이 들어 있어서 Render 대시보드 → **New → Blueprint** → 이 저장소를 고르면 정적 사이트로 배포됩니다.
-직접 설정할 때: **New → Static Site**, Build Command `npm install && npm run build`, Publish Directory `dist`, 환경변수 `NODE_VERSION=22.12.0`.
+직접 설정할 때: **New → Static Site**, Build Command `npm ci && npm run build`, Publish Directory `dist`, 환경변수 `NODE_VERSION=22.12.0`.
 
 ## 구조
 ```
