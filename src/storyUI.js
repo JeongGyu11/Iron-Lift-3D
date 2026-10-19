@@ -405,6 +405,7 @@ export class StoryUI {
     let tip = byExercise[lift.exercise];
     if (reason === 'balance') tip = '누를 때마다 약한 팔 쪽으로 쏠립니다. ⚠ 예고가 뜨면 반대쪽 키를 미리 누르세요. 벨트를 차면 흔들림이 크게 줄어듭니다.';
     else if (reason === 'depth') tip = '스쿼트는 DEPTH 게이지의 초록 구간까지 내려간 다음에 떼야 인정됩니다. 너무 일찍 떼면 NO REP입니다.';
+    else if (reason === 'timeout') tip = '한 번 들어 올리는 데 10초를 넘기면 실패입니다. 중간에서 버티기만 하면 안 되고, 부스터로 펌핑을 올리거나 PERFECT를 노려 힘을 몰아주세요.';
     else if (reason === 'floor') tip = '데드는 클릭 후 바로 휠을 굴려야 합니다. 바닥 근처에 오래 머물면 실패입니다. 휠을 멈추지 마세요.';
     else if (reason === 'grip') tip = '그립 경고가 뜨면 화면에 표시된 키(A 또는 D)를 바로 누르세요. 벨트를 차면 미끄러지는 횟수가 줄어듭니다.';
     else if (reason === 'sticking') tip = stickTips[lift.exercise];

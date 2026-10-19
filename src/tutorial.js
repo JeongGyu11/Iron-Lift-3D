@@ -38,28 +38,28 @@ const STEPS = [
     highlight: '.center-meters'
   },
   {
-    id: 'balance',
-    num: 2,
-    title: '좌우 균형',
-    text: '클릭할수록 <b>약한 팔 쪽으로 쏠린다</b>. 수평계에 ⚠ 예고가 뜨면 곧 <b>돌풍</b>!<br>' +
-          '<kbd>A</kbd>/<kbd>D</kbd> (또는 <kbd>◀</kbd>/<kbd>▶</kbd>)로 초록 막대를 가운데에. 클릭으로 시작.',
-    waitFor: 'lockout',
-    loadout: ['bench', 50],
-    flags: { driftScale: 1, ratio: 0.6 },
-    retry: 'balance',
-    highlight: '.balance-bubble-wrap'
-  },
-  {
     id: 'squat',
-    num: 3,
+    num: 2,
     title: '스쿼트: 누르기 · 떼기',
     text: '마우스를 <b>꾹 누르고 있으면 앉는다</b>. DEPTH 초록 구간까지 내려가서 <b>떼면</b> 반동!<br>' +
           '다시 <b>꾹 누르면 밀어 올린다</b>. BRACE 게이지가 꽉 차기 전에 <b>살짝 떼서 숨 쉬기</b>.',
     waitFor: 'lockout',
     loadout: ['squat', 50],
-    flags: { driftScale: 0.5, ratio: 0.55 },
+    flags: { driftScale: 0, ratio: 0.55 },
     retry: 'squat',
     highlight: '.depth-gauge-container'
+  },
+  {
+    id: 'balance',
+    num: 3,
+    title: '좌우 균형',
+    text: '스쿼트는 누르고 있을수록 <b>약한 다리 쪽으로 쏠린다</b>. 수평계에 ⚠ 예고가 뜨면 곧 <b>돌풍</b>!<br>' +
+          '<kbd>A</kbd>/<kbd>D</kbd> (또는 <kbd>◀</kbd>/<kbd>▶</kbd>)로 초록 막대를 가운데에. (벤치는 균형 신경 안 써도 된다)',
+    waitFor: 'lockout',
+    loadout: ['squat', 55],
+    flags: { driftScale: 1, ratio: 0.6 },
+    retry: 'balance',
+    highlight: '.balance-bubble-wrap'
   },
   {
     id: 'deadlift',
@@ -247,7 +247,8 @@ export class Tutorial {
         sticking: '😵 한계 지점에서 버티지 못했다! 스태미나가 바닥나기 전에 뚫어야 한다.',
         depth: '😵 깊이 부족 (NO REP)! DEPTH 초록 구간까지 내려간 다음에 떼라.',
         grip: '😵 그립을 놓쳤다! 경고가 뜨면 표시된 키를 바로 눌러라.',
-        floor: '😵 바닥에서 못 뗐다! 클릭하고 바로 휠을 아래로 굴려라.'
+        floor: '😵 바닥에서 못 뗐다! 클릭하고 바로 휠을 아래로 굴려라.',
+        timeout: '😵 시간 초과! 10초 안에 끝까지 올려야 한다.'
       }[data] || ({
         bench: '😵 힘이 빠졌다! 바늘이 초록 구간에 들어왔을 때만 클릭해라. 빨간 칸은 MISS다.',
         squat: '😵 힘이 빠졌다! 꾹 누르고 있어야 올라간다. BRACE가 차면 아주 잠깐만 떼라.',

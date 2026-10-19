@@ -1428,3 +1428,8 @@ body.ex-bench.gauge-on.lifting .power-gauge { display: flex; }
 .name-field input:focus { outline: none; border-color: #00ff88; box-shadow: 0 0 10px rgba(0, 255, 136, 0.35); }
 .name-field small { font-size: 11px; color: #6f7a8c; word-break: keep-all; }
 .menu-links { display: flex; justify-content: center; gap: 18px; }
+
+/* Bench has no left/right balance: hide the spirit level, keep stamina */
+body.ex-bench .balance-title,
+body.ex-bench .balance-track,
+body.ex-bench .gust-warn { display: none; }

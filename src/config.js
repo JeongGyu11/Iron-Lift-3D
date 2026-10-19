@@ -3,7 +3,7 @@
 // 기준 비율 r = 바벨 무게 / 현재 1RM(근력)
 //
 // 종목별 조작
-//   벤치   : 파워 게이지. 왕복하는 바늘이 초록 구간에 올 때 클릭 (노란 구간 = PERFECT). 빨간 구간 = MISS + 게이지 멈춤
+//   벤치   : 파워 게이지. 왕복하는 바늘이 초록 구간에 올 때 클릭 (노란 구간 = PERFECT). 빨간 구간 = MISS + 게이지 멈춤. 좌우 균형 없음
 //   스쿼트 : 홀드. 누르고 있으면 앉기 → 깊이 구간에서 떼기 → 다시 눌러 밀기. 복압 게이지 관리
 //   데드   : 휠. 마우스 휠을 아래로 굴려 당기기. 그립 슬립 때 표시된 키(A/D) 즉시 입력
 //
@@ -23,6 +23,7 @@ export const TUNING = {
   // 바가 바닥 근처(진행도 8% 아래)에 머문 누적 시간. 넘으면 실패
   //   바닥 위에서 오르내려도 누적되고, 위로 올라가면 절반 속도로 줄어든다
   bottomZone: 0.08,
+  repTimeLimit: 10,         // 한 번 들어 올리는 데 쓸 수 있는 최대 시간(초)
   bottomFailTime: { bench: 1.4, squat: 1.2, deadlift: 2.4 },
 
   // 공통 스태미나
@@ -43,26 +44,28 @@ export const TUNING = {
   pumpMin: 0.2,
 
   bench: {
-    gravity: 4.8,           // × r
+    gravity: 5.8,           // × r
     descBase: 0.8, descR: 0.25,
     perfectZone: 0.15,      // 가슴 터치 PERFECT 구간
     goodZone: 0.30,
     perfectVel: 1.15, goodVel: 0.75, bounceVel: 0.2, bouncePenalty: 0.08,
-    needleBase: 0.9,        // 바늘 속도 (게이지 한쪽 끝→끝, 초당) = base + R × r
-    needleR: 0.9,
+    needleBase: 0.6,        // 바늘 속도 (게이지 한쪽 끝→끝, 초당) = base + R × r
+    needleR: 0.6,
     zoneBase: 0.24,         // 초록 구간 반폭 = base - R × r
     zoneR: 0.08,
     perfectFrac: 0.35,      // 노란(PERFECT) 구간 = 초록 반폭 × 이 값
     jamTime: 0.4,           // MISS 후 게이지 멈춤(초)
     zoneDelay: 0.25,        // 맞힌 뒤 다음 구간이 켜지기까지(초)
+    zoneSpread: 0.12,       // 다음 구간은 바늘 진행 방향 앞쪽, 이만큼 범위 안에서 랜덤
+    driveTime: 0.3,         // 한 번 민 힘이 들어가는 시간(초)
     stickZoneMul: 0.85,     // 한계 지점: 구간 × 0.85
-    stickSpeedMul: 1.1,     //            바늘 속도 × 1.1
-    impulse: 4.45,          // PERFECT 1회 상승 속도
+    stickSpeedMul: 1.0,     //            바늘 속도 그대로
+    impulse: 5.4,           // PERFECT 1회 힘 (driveTime 동안 나눠서 들어감)
     goodMul: 0.5,
     missMul: 0.1,
     cost: 0.035,            // × (0.5 + r)
     missCostMul: 1.6,
-    stickBase: 3, stickPerR: 10   // 한계 지점 필요 히트 수
+    stickBase: 2, stickPerR: 8    // 한계 지점 필요 히트 수
   },
 
   squat: {

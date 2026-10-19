@@ -28,7 +28,7 @@ function stickMul(g) {
 // ===============================================================
 export const Bench = {
   id: 'bench',
-  usesBalance: true,
+  usesBalance: false, // 벤치는 좌우 균형 없음 (게이지 타이밍에 집중)
   idle: { key: 'CLICK TO UNRACK', hint: '클릭으로 시작 → 가슴에 닿는 순간 클릭 → 바늘이 초록 구간에 오면 클릭' },
 
   start(g) {
@@ -39,7 +39,7 @@ export const Bench = {
   },
 
   resetGauge(g, sticking = false) {
-    g.pg = { pos: 0.05, dir: 1, center: 0.5, hw: 0.2, pw: 0.07, jam: 0, wait: 0, inZone: false, sticking };
+    g.pg = { pos: 0.05, dir: 1, center: 0.5, hw: 0.2, pw: 0.07, jam: 0, wait: 0, inZone: false, sticking, drive: g.pg ? g.pg.drive || 0 : 0 };
     this.newZone(g, g.ratio());
   },
 
@@ -49,10 +49,13 @@ export const Bench = {
     const mul = pg.sticking ? P.stickZoneMul : 1;
     pg.hw = Math.max(0.05, (P.zoneBase - P.zoneR * r) * mul);
     pg.pw = pg.hw * P.perfectFrac;
-    // New target somewhere away from the needle so it has to travel to it
-    let c;
-    do { c = pg.hw + 0.02 + Math.random() * (1 - 2 * (pg.hw + 0.02)); } while (Math.abs(c - pg.pos) < 0.18);
-    pg.center = c;
+    // New target ahead of the needle (in its travel direction), so clicks come at a steady pace
+    const speed = (P.needleBase + P.needleR * r) * (pg.sticking ? P.stickSpeedMul : 1);
+    const lo = pg.hw + 0.02, hi = 1 - pg.hw - 0.02;
+    let c = pg.pos + pg.dir * (speed * P.zoneDelay + pg.hw * 0.5 + 0.04 + Math.random() * P.zoneSpread);
+    if (c > hi) c = hi - (c - hi);   // bounce off the right end
+    if (c < lo) c = lo + (lo - c);   // bounce off the left end
+    pg.center = Math.max(lo, Math.min(hi, c));
     pg.inZone = false;
     pg.wait = T.bench.zoneDelay; // new zone lights up after a short delay
   },
@@ -100,7 +103,8 @@ export const Bench = {
 
     if (g.state === 'ASCENDING') {
       if (!miss) {
-        g.vel = Math.min(T.maxUpVel, g.vel + P.impulse * q * g.power());
+        // The push is delivered over ~0.3s for a smooth press instead of a jerk
+        pg.drive += P.impulse * q * g.power();
         g.pumpUp();
       }
       g.shake(miss ? 0.02 : 0.05);
@@ -162,8 +166,15 @@ export const Bench = {
     g.updateGauge();
 
     if (g.state === 'ASCENDING') {
+      if (pg.drive > 0) {
+        const take = pg.drive * (1 - Math.exp(-dt / P.driveTime));
+        pg.drive -= take;
+        g.vel = Math.min(T.maxUpVel, g.vel + take);
+      }
       g.integrate(dt, P.gravity * r);
       g.checkAscent(r);
+    } else {
+      pg.drive = 0;
     }
   }
 };

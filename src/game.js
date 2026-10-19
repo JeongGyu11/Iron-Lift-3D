@@ -659,6 +659,7 @@ export class IronLiftGame {
     this.stickCount = 0;
     this.stickDone = false;
     this.scheduleGust(true);
+    this.repTime = 0;
     this.mech.start(this);
     this.dom.btnLift.innerText = 'LIFTING...';
     this.tutorial.onEvent('liftStart');
@@ -737,6 +738,7 @@ export class IronLiftGame {
       depth: '깊이가 부족합니다! (NO REP) DEPTH 초록 구간까지 앉은 뒤 떼세요.',
       grip: '그립을 놓쳐 바벨을 떨어뜨렸습니다!',
       floor: '바벨을 바닥에서 떼지 못했습니다!',
+      timeout: '시간 초과! 10초 안에 끝까지 들어 올리지 못했습니다.',
       stamina: '바벨 무게를 이기지 못하고 깔렸습니다!'
     }[reason] || '바벨 무게를 이기지 못하고 깔렸습니다!';
   }
@@ -987,6 +989,11 @@ export class IronLiftGame {
     const r = this.ratio();
 
     if (this.mech.usesBalance && this.updateBalance(dt, r)) { this.onFail('balance'); return; }
+
+    // A rep can't grind forever
+    this.repTime = (this.repTime || 0) + dt;
+    if (this.repTime > T.repTimeLimit) { this.onFail('timeout'); return; }
+    if (this.repTime > T.repTimeLimit - 3 && this.state === 'ASCENDING') this.dom.promptKey.innerText = `⏱ ${Math.ceil(T.repTimeLimit - this.repTime)}초!! 밀어!!`;
 
     this.stamina = Math.min(1, this.stamina + T.regenPerSec * dt);
 
