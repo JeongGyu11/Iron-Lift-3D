@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Iron Lift 3D - 3대 500 피트니스 액션</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800;900&family=Teko:wght@500;700&display=swap" />
+  <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body>
+  <!-- 3D WebGL Canvas Container -->
+  <div id="canvas-container"></div>
+
+  <!-- Fullscreen FX Vignette for Sticking Point -->
+  <div id="sticking-vignette" class="fx-layer"></div>
+
+  <!-- Game HUD Layer -->
+  <div id="ui-overlay">
+    <!-- Protagonist face cam (reacts while lifting) -->
+    <div id="face-cam" class="face-cam"></div>
+    <!-- Top Header -->
+    <header class="hud-header">
+      <!-- Big 3 Score & Brand Card -->
+      <div class="brand-card interactive">
+        <div class="game-title">
+          <span>⚡ IRON LIFT 3D</span> • 3대 500
+        </div>
+        <div class="total-score-badge">
+          <span class="total-label">3대 총합 (BIG 3)</span>
+          <span id="total-val" class="total-val">240 <small>/ 500kg</small></span>
+        </div>
+        <div class="progress-track">
+          <div id="progress-fill" class="progress-fill"></div>
+        </div>
+      </div>
+
+      <!-- Exercise Mode Switcher -->
+      <nav class="exercise-tabs interactive">
+        <button id="tab-bench" class="tab-btn active">
+          벤치프레스
+          <span class="tab-sub">Bench Press</span>
+        </button>
+        <button id="tab-squat" class="tab-btn">
+          스쿼트
+          <span class="tab-sub">Squat</span>
+        </button>
+        <button id="tab-deadlift" class="tab-btn">
+          데드리프트
+          <span class="tab-sub">Deadlift</span>
+        </button>
+      </nav>
+
+      <!-- Story Stage Banner (story mode only) -->
+      <div id="stage-banner" class="stage-banner">
+        <div id="sb-title" class="sb-title">1-1</div>
+        <div class="sb-row">
+          <span id="sb-lift" class="sb-lift">벤치프레스 30kg</span>
+          <span id="sb-reps" class="sb-reps"></span>
+          <span id="sb-attempts" class="sb-attempts" title="남은 기회">♥♥♥</span>
+        </div>
+      </div>
+
+      <!-- Sound & Settings Buttons -->
+      <div class="header-actions interactive">
+        <button id="btn-home" class="icon-btn" title="메인 메뉴 / 지도">🏠</button>
+        <button id="btn-tutorial" class="icon-btn" title="게임 방법 보기">❓</button>
+        <button id="btn-mute" class="icon-btn" title="소리 켜기/끄기">🔊</button>
+      </div>
+    </header>
+
+    <!-- Center Playfield HUD -->
+    <main class="playfield-hud">
+      <!-- Left: Depth / Chest Touch Zone -->
+      <aside class="depth-gauge-container">
+        <span class="depth-label">DEPTH</span>
+        <div class="depth-track">
+          <div id="depth-target-zone" class="depth-target-zone" style="top: 60%; height: 25%;"></div>
+          <div id="depth-indicator" class="depth-indicator" style="top: 0%;"></div>
+        </div>
+      </aside>
+
+      <!-- Center: Balance Spirit Level & Action Prompts -->
+      <div class="center-meters">
+        <!-- Balance Bubble Meter -->
+        <div class="balance-bubble-wrap">
+          <span class="balance-title">BAR BALANCE (좌우 균형: A/D 또는 ◀/▶)</span>
+          <span class="grip-title">GRIP · 손이 미끄러지면 표시된 키 (A / D)</span>
+          <div class="balance-track">
+            <div class="balance-center-line"></div>
+            <div id="balance-bubble" class="balance-bubble" style="left: 50%;"></div>
+          </div>
+          <div id="gust-warn" class="gust-warn"></div>
+          <div class="stamina-wrap">
+            <span class="stamina-label">STAMINA</span>
+            <div class="stamina-track"><div id="stamina-fill" class="stamina-fill"></div></div>
+          </div>
+          <div class="tension-wrap">
+            <span class="stamina-label">BRACE</span>
+            <div class="stamina-track"><div id="tension-fill" class="tension-fill"></div></div>
+          </div>
+        </div>
+
+        <!-- Bench power gauge -->
+        <div id="power-gauge" class="power-gauge">
+          <span class="pg-title">POWER · 바늘이 초록에 오면 클릭</span>
+          <div class="pg-track">
+            <div id="pg-zone" class="pg-zone"></div>
+            <div id="pg-perfect" class="pg-perfect"></div>
+            <div id="pg-needle" class="pg-needle"></div>
+          </div>
+          <div id="pg-label" class="pg-label"></div>
+        </div>
+
+        <!-- Action / Rhythm Prompt Banner -->
+        <div class="action-prompt-card">
+          <div id="prompt-key" class="prompt-key">CLICK TO UNRACK</div>
+          <div id="prompt-hint" class="prompt-hint">화면을 클릭해 리프팅을 시작하세요</div>
+        </div>
+      </div>
+
+      <!-- Right: Muscle Pump Meter -->
+      <aside class="pump-gauge-container">
+        <span class="depth-label">PUMP</span>
+        <div class="pump-track">
+          <div id="pump-fill" class="pump-fill" style="height: 20%;"></div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Bottom Controls & Gear Dock -->
+    <footer class="hud-footer">
+      <!-- Weight Selector Dock -->
+      <div class="weight-dock interactive">
+        <button id="btn-weight-minus" class="weight-btn" title="중량 감소">-</button>
+        <div class="weight-display">
+          <span class="weight-label">BARBELL WEIGHT</span>
+          <div class="weight-num"><span id="weight-val">80</span> <span>KG</span></div>
+          <span id="ratio-val" class="ratio-val ok">1RM 50kg · 80%</span>
+        </div>
+        <button id="btn-weight-plus" class="weight-btn" title="중량 증가">+</button>
+      </div>
+
+      <!-- Main Lift Trigger Button -->
+      <button id="btn-lift" class="lift-action-btn interactive">LIFT START (CLICK)</button>
+
+      <!-- Gear & Buffs Inventory Dock -->
+      <div class="gear-dock interactive">
+        <div id="gear-ammonia" class="gear-slot">
+          <span class="gear-key">1</span>
+          <span class="gear-icon">⚡</span>
+          <span class="gear-name">암모니아</span>
+          <span id="cnt-ammonia" class="gear-count">×0</span>
+        </div>
+        <div id="gear-belt" class="gear-slot">
+          <span class="gear-key">2</span>
+          <span class="gear-icon">🥋</span>
+          <span class="gear-name">인저벨트</span>
+          <span id="cnt-belt" class="gear-count">×0</span>
+        </div>
+        <div id="gear-booster" class="gear-slot">
+          <span class="gear-key">3</span>
+          <span class="gear-icon">🥤</span>
+          <span class="gear-name">부스터</span>
+          <span id="cnt-booster" class="gear-count">×0</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Tutorial Guide Modal -->
+  <div id="tutorial-modal" class="status-modal tutorial-modal interactive">
+    <div class="modal-title" style="color: #00ff88; text-shadow: 0 0 15px #00ff88;">📖 게임 플레이 가이드</div>
+    <div class="tutorial-steps">
+      <div class="tutorial-step-card">
+        <div class="step-num">STEP 1</div>
+        <div class="step-icon">🏋️</div>
+        <div class="step-body">
+          <strong>종목 & 무게 선택</strong>
+          <span>스토리 모드는 스테이지가 무게를 정합니다. 자유 훈련에서는 탭과 <kbd>-</kbd> <kbd>+</kbd>로 직접 고릅니다. 무게 옆 %는 내 1RM 대비 강도입니다.</span>
+        </div>
+      </div>
+
+      <div class="tutorial-step-card">
+        <div class="step-num">STEP 2</div>
+        <div class="step-icon">⚡</div>
+        <div class="step-body">
+          <strong>벤치프레스: 파워 게이지 (<kbd>CLICK</kbd>)</strong>
+          <span>가슴에 닿는 순간 클릭 → 게이지를 왕복하는 바늘이 초록 구간에 오면 클릭 (가운데 노란색 = PERFECT). 빨간 곳에서 누르면 MISS, 게이지가 잠깐 멈춥니다.</span>
+        </div>
+      </div>
+
+      <div class="tutorial-step-card">
+        <div class="step-num">STEP 3</div>
+        <div class="step-icon">⚖️</div>
+        <div class="step-body">
+          <strong>좌우 수평 균형 (<kbd>A</kbd> / <kbd>D</kbd> 또는 <kbd>◀</kbd> / <kbd>▶</kbd>)</strong>
+          <span>클릭할수록 약한 팔 쪽으로 쏠리고, ⚠ 예고 뒤엔 돌풍이 옵니다. 17도 넘게 기울면 실패!</span>
+        </div>
+      </div>
+
+      <div class="tutorial-step-card highlight">
+        <div class="step-num">STEP 4</div>
+        <div class="step-icon">💥</div>
+        <div class="step-body">
+          <strong>스쿼트: 누르기·떼기 / 데드리프트: 휠</strong>
+          <span>스쿼트: 누르고 있으면 앉고, DEPTH 초록 구간에서 떼면 반동. 다시 누르고 있으면 밀어 올리는데 BRACE 게이지가 차기 전에 잠깐 떼서 숨 고르기.<br>데드: 휠을 아래로 굴려 당기고, 손이 미끄러진다는 경고가 뜨면 표시된 키(A/D)를 바로!</span>
+        </div>
+      </div>
+
+      <div class="tutorial-step-card red-highlight">
+        <div class="step-num">STEP 5</div>
+        <div class="step-icon">🔥</div>
+        <div class="step-body">
+          <strong>한계 지점 (Sticking Point)</strong>
+          <span>1RM의 80% 이상이면 바벨이 중간에 멈춥니다. 벤치는 좁아진 초록 구간을 N번 맞추기, 스쿼트는 누른 채로 버티기, 데드는 휠 폭풍 회전!</span>
+        </div>
+      </div>
+
+      <div class="tutorial-step-card">
+        <div class="step-num">ITEM</div>
+        <div class="step-icon">🎒</div>
+        <div class="step-body">
+          <strong>특수 헬스 장비 사용</strong>
+          <span><kbd>1</kbd> 암모니아: 6초 힘+15%·한계 클릭 -40% | <kbd>2</kbd> 벨트: 세트 동안 흔들림 -60% | <kbd>3</kbd> 부스터: 스태미나·펌핑 100%. 재고 한정! 스토리 보상으로 얻습니다.</span>
+        </div>
+      </div>
+    </div>
+    <button id="btn-tutorial-close" class="modal-btn" style="margin-top: 18px; width: 100%;">이해했습니다! 쇠질 시작하기 💪</button>
+    <button id="btn-start-training" class="coach-skip" style="margin-top: 10px; width: 100%;">🎓 직접 따라 하는 실전 튜토리얼 하기</button>
+  </div>
+
+  <!-- ===== STORY MODE SCREENS (src/storyUI.js) ===== -->
+  <div id="menu-screen" class="screen menu-screen interactive">
+    <div class="menu-inner">
+      <div class="menu-hero">
+        <div id="menu-portrait" class="menu-portrait"></div>
+        <div class="menu-logo"><span>⚡ IRON LIFT 3D</span><em>3대 500 · 탄탄클럽 탈출기</em></div>
+      </div>
+      <p class="menu-tag">짝사랑 서연 씨의 이상형은 "몸 좋은 남자". 그런데 몸이 좋아질수록 꼬이는 건 몸 좋은 형님들뿐...</p>
+      <div id="menu-stats" class="menu-stats"></div>
+      <div class="menu-buttons">
+        <button id="btn-menu-story" class="menu-btn primary">📖 스토리 모드</button>
+        <button id="btn-menu-free" class="menu-btn">🏋️ 자유 훈련 <small>PR 도전</small></button>
+        <button id="btn-menu-tutorial" class="menu-btn">🎓 튜토리얼 <small>관장님 기본기 트레이닝</small></button>
+      </div>
+      <div class="menu-links">
+        <button id="btn-menu-names" class="menu-reset">✏️ 이름 바꾸기</button>
+        <button id="btn-menu-reset" class="menu-reset">진행 초기화</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="name-screen" class="screen name-screen interactive">
+    <div class="result-card name-card">
+      <div class="res-title good">이름 정하기</div>
+      <p class="name-sub">스토리에서 불릴 이름을 정해주세요. 나중에 메뉴에서 바꿀 수 있습니다.</p>
+      <div class="name-row">
+        <div id="name-me-art" class="name-art"></div>
+        <label class="name-field" for="name-me">
+          <span>주인공</span>
+          <input id="name-me" type="text" maxlength="8" autocomplete="off" spellcheck="false" placeholder="김민준">
+          <small id="name-me-preview"></small>
+        </label>
+      </div>
+      <div class="name-row">
+        <div id="name-her-art" class="name-art"></div>
+        <label class="name-field" for="name-her">
+          <span>짝사랑 상대</span>
+          <input id="name-her" type="text" maxlength="8" autocomplete="off" spellcheck="false" placeholder="한서연">
+          <small id="name-her-preview"></small>
+        </label>
+      </div>
+      <div class="res-actions">
+        <button id="btn-name-ok" class="modal-btn">이 이름으로 시작</button>
+        <button id="btn-name-default" class="coach-skip">기본 이름 쓰기</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="map-screen" class="screen map-screen interactive">
+    <div class="map-head">
+      <button id="btn-map-back" class="coach-skip">◀ 메뉴</button>
+      <h2>STORY</h2>
+      <div id="map-items" class="map-items"></div>
+    </div>
+    <div id="map-body" class="map-body"></div>
+  </div>
+
+  <div id="dialogue-box" class="dialogue-box interactive">
+    <div id="dlg-avatar" class="dlg-portrait"></div>
+    <div class="dlg-main">
+      <div id="dlg-name" class="dlg-name">강철구 관장</div>
+      <div id="dlg-text" class="dlg-text"></div>
+    </div>
+    <div class="dlg-hint">클릭 / Space ▼</div>
+    <button id="dlg-skip" class="dlg-skip">건너뛰기 ▶▶</button>
+  </div>
+
+  <div id="result-screen" class="screen result-screen interactive">
+    <div class="result-card">
+      <div id="res-portrait" class="res-portrait"></div>
+      <div id="res-title" class="res-title">STAGE CLEAR!</div>
+      <div id="res-stars" class="res-stars"></div>
+      <div id="res-body" class="res-body"></div>
+      <div id="res-actions" class="res-actions"></div>
+    </div>
+  </div>
+
+  <div id="confirm-box" class="screen confirm-box interactive">
+    <div class="result-card small">
+      <p id="confirm-text" class="confirm-text"></p>
+      <div class="res-actions">
+        <button id="confirm-yes" class="modal-btn">확인</button>
+        <button id="confirm-no" class="coach-skip">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <!-- Deadlift grip slip alert -->
+  <div id="grip-alert" class="grip-alert">
+    <div id="grip-key" class="grip-key">A ◀</div>
+    <div class="grip-timer"><div id="grip-bar" class="grip-bar"></div></div>
+  </div>
+
+  <!-- Interactive Training Coach Card (src/tutorial.js) -->
+  <div id="coach-card" class="coach-card interactive">
+    <div class="coach-head">
+      <span id="coach-avatar" class="coach-avatar"></span>
+      <span class="coach-name">관장님</span>
+      <span id="coach-progress" class="coach-progress">TRAINING</span>
+    </div>
+    <div id="coach-title" class="coach-title"></div>
+    <div id="coach-text" class="coach-text"></div>
+    <ul id="coach-checklist" class="coach-checklist"></ul>
+    <div id="coach-feedback" class="coach-feedback"></div>
+    <div class="coach-actions">
+      <button id="coach-next" class="modal-btn">다음</button>
+      <button id="coach-skip" class="coach-skip">튜토리얼 건너뛰기</button>
+    </div>
+  </div>
+
+  <!-- PR Success Modal -->
+  <div id="pr-modal" class="status-modal pr-modal interactive">
+    <div id="pr-portrait" class="modal-portrait"></div>
+    <div id="pr-title" class="modal-title">NEW PR: 100KG!</div>
+    <div id="pr-desc" class="modal-desc">괴물 같은 스트렝스! 점진적 과부하 달성!</div>
+    <button id="btn-pr-confirm" class="modal-btn">다음 무게 도전하기</button>
+  </div>
+
+  <!-- Pinned Fail Modal -->
+  <div id="fail-modal" class="status-modal fail-modal interactive">
+    <div id="fail-portrait" class="modal-portrait"></div>
+    <div id="fail-title" class="modal-title">PINNED (깔림!)</div>
+    <div id="fail-desc" class="modal-desc">바벨 무게를 이기지 못하고 깔렸습니다! 🚨 관장님 긴급 출동!</div>
+    <button id="btn-fail-confirm" class="modal-btn">다시 털고 일어나기</button>
+  </div>
+
+  <!-- App Script Entry -->
+  <script type="module" src="./src/game.js"></script>
+</body>
+</html>

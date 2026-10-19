@@ -1,0 +1,20 @@
+{
+  "name": "iron-lift-3d",
+  "version": "1.0.0",
+  "description": "3D Physics Fitness Action Web Game - Iron Lift 3대 500",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host --port 5173",
+    "build": "vite build",
+    "preview": "vite preview --host"
+  },
+  "dependencies": {
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "vite": "^8.3.4"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

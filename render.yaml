@@ -1,0 +1,11 @@
+# Render Blueprint: 정적 사이트로 배포 (무료 플랜 가능)
+# Render 대시보드 → New → Blueprint → 이 저장소 선택
+services:
+  - type: web
+    name: iron-lift-3d
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: NODE_VERSION
+        value: 22.12.0
